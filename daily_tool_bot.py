@@ -1,5 +1,6 @@
 import asyncio
 from aiogram import Bot, Dispatcher, types, executor
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from db import Datebase
 from config import BOT_TOKEN, API_KEY
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -12,17 +13,27 @@ import random
 from requests.auth import HTTPProxyAuth
 import pytz
 
+
 bot = Bot(BOT_TOKEN)
 dp = Dispatcher(bot)
 
 db = Datebase('database.db')
+
+start_btn = KeyboardButton('/help')
+start_kb = ReplyKeyboardMarkup(resize_keyboard=True).row(start_btn)
+
+weather_btn = KeyboardButton('/weather')
+money_btn = KeyboardButton('/money')
+qoute_btn = KeyboardButton('/quote')
+help_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).row(weather_btn, money_btn, qoute_btn)
+
 
 @dp.message_handler(commands=['start'])
 async def start(msg: types.Message) -> None:
     if msg.chat.type == 'private':
         if not db.user_exists(msg.from_user.id):
             db.add_user(msg.from_user.id)
-        await msg.answer('Добро пожаловать! Я <b>Daily Bot</b>, каждое утро я буду присылать тебе свежую информацию.\nДругие функции можно узнать с помощью комманды <b>/help</b> ', parse_mode='HTML')
+        await msg.answer('Добро пожаловать! Я <b>Daily Bot</b>, каждое утро я буду присылать тебе свежую информацию.\nДругие функции можно узнать с помощью комманды <b>/help</b> ', parse_mode='HTML', reply_markup=start_kb)
 
 @dp.message_handler(commands=['help'])
 async def info(msg: types.Message) -> None:
@@ -35,11 +46,11 @@ async def info(msg: types.Message) -> None:
         '\n'\
         'Комманда <b>/quote</b> - для получения мотивирующей цитаты\n'\
         '\n'\
-        'Если возникли вопросы/жалобы/предложения, то обращаться к <b>@VladossPaltos</b>', parse_mode="HTML"
+        'Если возникли вопросы/жалобы/предложения, то обращаться к <b>@VladossPaltos</b>', parse_mode='HTML', reply_markup=help_kb
     )
 
 
-@dp.message_handler(commands=["quote"])
+@dp.message_handler(commands=['quote'])
 async def quote(msg: types.Message) -> None:
     try:
         proxies = {'http': 'http://ttNkVLRS:63cYXNdr@195.245.103.252:64534'}
